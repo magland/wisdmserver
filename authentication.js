@@ -2,10 +2,10 @@ var fs = require('fs');
 var wisdmconfig=require('./wisdmconfig').wisdmconfig;
 var crypto = require('crypto');
 
-
 function authentication(request,callback) {
 	var command=request.command||'';
 	var auth_path=wisdmconfig.wisdm_server.auth_path;
+	do_mkdir(auth_path);
 	if (!auth_path) {
 		callback({success:false,error:'wisdmconfig.wisdm_server.auth_path is empty.'});
 		return;
@@ -501,6 +501,14 @@ function get_permissions(auth_info) {
 		permissions.submit_script=true;
 	}		
 	return permissions;
+}
+
+function do_mkdir(path) {
+	try {
+		require('fs').mkdirSync(path);
+	}
+	catch(err) {
+	}
 }
 
 exports.authentication=authentication;
