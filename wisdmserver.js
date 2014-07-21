@@ -1,7 +1,7 @@
 var wisdmconfig=require('./wisdmconfig').wisdmconfig;
-var WISDMUSAGE=require('../processingnodeclient/src/wisdmusage').WISDMUSAGE;
-WISDMUSAGE.startPeriodicWritePendingRecords();
-WISDMUSAGE.setCollectionName('wisdmserver');
+//var WISDMUSAGE=require('../processingnodeclient/src/wisdmusage').WISDMUSAGE;
+//WISDMUSAGE.startPeriodicWritePendingRecords();
+//WISDMUSAGE.setCollectionName('wisdmserver');
 var common=require('./common').common;
 
 /*
@@ -66,12 +66,12 @@ if (wisdmconfig.wisdm_server.listen_port) {
 		function on_request_part2() {
 			
 			var user_id=(request.auth_info||{}).user_id;
-			WISDMUSAGE.addRecord({
+			/*WISDMUSAGE.addRecord({
 				user_id:user_id||'unknown.'+request.remoteAddress,
 				usage_type:'request_bytes',
 				amount:JSON.stringify(request).length,
 				name:request.command||''
-			});
+			});*/
 			
 			
 			var service=request.service||'';
@@ -113,12 +113,12 @@ if (wisdmconfig.wisdm_server.listen_port) {
 			}
 			
 			function finalize(tmp) {
-				WISDMUSAGE.addRecord({
+				/*WISDMUSAGE.addRecord({
 					user_id:user_id||'unknown.'+request.remoteAddress,
 					usage_type:'response_bytes',
 					amount:JSON.stringify(tmp).length,
 					name:request.command||''
-				});
+				});*/
 				if (callback) callback(tmp);
 			}
 			
@@ -184,12 +184,12 @@ if (wisdmconfig.wisdm_server.listen_port) {
 					var bytes_written=(REQ.socket||{}).bytesWritten||0;
 					bytes_written-=previous_bytes_written;
 					if (bytes_written>0) {
-						WISDMUSAGE.addRecord({
+						/*WISDMUSAGE.addRecord({
 							user_id:'unknown.'+remote_address,
 							usage_type:'file_server_bytes',
 							amount:bytes_written,
 							name:common.get_file_suffix(url_parts.pathname)
-						});
+						});*/
 					}
 				});
 			}

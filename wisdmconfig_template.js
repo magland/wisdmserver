@@ -5,7 +5,7 @@ var wisdmconfig={};
 wisdmconfig.wisdm_server={
         listen_port:8080,
         www_path:'/home/magland/wisdm/www',
-        //server_source_path:'/home/magland/dev/nodejs',
+        server_source_path:'/home/magland/wisdm',
         processingwebserver_url:'http://wisdmhub.org:8081',
         users_path:'/home/magland/.wisdm/users.json',
         auth_path:'/tmp/wisdmauth',
