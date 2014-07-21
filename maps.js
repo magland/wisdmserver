@@ -4,7 +4,7 @@ var common=require('./common').common;
 var MapTransferHandler=require('./maptransferhandler').MapTransferHandler;
 
 var maps_waiting_for_contents_by_code={};
-var DATABASE=require('../processingnodeclient/src/databasemanager').DATABASE;
+var DATABASE=require('./databasemanager').DATABASE;
 
 /*function add_contents_to_map(map,contents_needed_by_checksum) {
 	var ret=true;
