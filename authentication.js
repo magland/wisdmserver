@@ -342,7 +342,9 @@ function periodic_cleanup() {
 		console.error('wisdmconfig.wisdm_server.auth_path is empty.');
 	}
 	else {
+		do_mkdir(auth_path);
 		var path0=auth_path+'/active_sessions';
+		do_mkdir(path0);
 		fs.readdir(path0,function(err,files) {
 			if (err) {
 				console.error(err);
