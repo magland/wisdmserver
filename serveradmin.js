@@ -1,5 +1,6 @@
 var fs = require('fs');
 var wisdmconfig=require('./wisdmconfig').wisdmconfig;
+var crypto=require('crypto');
 
 function serveradmin(request,callback) {
 	var permissions=(request.auth_info||{}).permissions||{};
@@ -15,7 +16,7 @@ function serveradmin(request,callback) {
 			return;
 		}
 		var project=request.project||'';
-		var valid_projects=['wisdmserver','processingwebserver','processingnodeclient','processingsubnodeclient','filesystemclient','filesystemwebserver','tempfileserver','wisdmfileserver'];
+		var valid_projects=['wisdmserver','processingwebserver','processingnodeclient','processingsubnodeclient','filesystemclient','filesystemwebserver','tempfileserver','wisdmfileserver','vmriengine','wdapi'];
 		if (valid_projects.indexOf(project)<0) {
 			callback({success:false,error:'Invalid project: '+project});
 			return;
@@ -31,8 +32,118 @@ function serveradmin(request,callback) {
 		}
 		callback({success:true});		
 	}
+	else if (command=='setUserPassword') {
+		if (!is_admin_user(request.auth_info.user_id)) {
+			callback({success:false,error:'You are not authorized to set user passwords: '+request.auth_info.user_id,authorization_error:true});
+			return;
+		}
+		try {
+			var users=read_json_file(wisdmconfig.wisdm_server.users_path);
+			if (!users.users) {
+				callback({success:false,error:'Problem reading json file: '+wisdmconfig.wisdm_server.users_path});
+				return;
+			}
+			var salt=make_random_id(16);
+			var tmp={
+				hashed_password:get_hashed_password(request.password,salt),
+				salt:salt
+			};
+			users.users[request.user]=tmp;
+			if (!write_json_file(wisdmconfig.wisdm_server.users_path,users)) {
+				callback({success:false,error:'Problem writing json file.'});
+				return;
+			}
+			callback({success:true});
+		}
+		catch(err) {
+			console.log('########',JSON.stringify(err));
+			callback({success:false,error:'Unexpected problem setting user password: '+JSON.stringify(err)});
+			return;
+		}
+	}
+	else if (command=='removeUser') {
+		if (!is_admin_user(request.auth_info.user_id)) {
+			callback({success:false,error:'You are not authorized to remove users: '+request.auth_info.user_id,authorization_error:true});
+			return;
+		}
+		var users=read_json_file(wisdmconfig.wisdm_server.users_path);
+		if (!users.users) {
+			callback({success:false,error:'Problem reading json file: '+wisdmconfig.wisdm_server.users_path});
+			return;
+		}
+		delete(users.users[request.user]);
+		if (!write_json_file(wisdmconfig.wisdm_server.users_path,users)) {
+			callback({success:false,error:'Problem writing json file.'});
+			return;
+		}
+		callback({success:true});
+	}
+	else if (command=='getUsers') {
+		if (!is_admin_user(request.auth_info.user_id)) {
+			callback({success:false,error:'You are not authorized to get users: '+request.auth_info.user_id,authorization_error:true});
+			return;
+		}
+		var users=read_json_file(wisdmconfig.wisdm_server.users_path);
+		if (!users.users) {
+			callback({success:false,error:'Problem reading json file: '+wisdmconfig.wisdm_server.users_path});
+			return;
+		}
+		for (var user0 in users.users) {
+			delete(users.users[user0].hashed_password);
+			delete(users.users[user0].salt);
+		}
+		callback({success:true,users:users});
+	}
 	else {
 		callback({success:false,error:'Unknown command: '+command});
+	}
+	function make_random_id(numchars) {
+		var text = "";
+		var possible = "abcdef0123456789";
+		for( var i=0; i < numchars; i++ ) text += possible.charAt(Math.floor(Math.random() * possible.length));
+		return text;
+	}
+
+	function read_json_file(path) {
+		var txt;
+		try {
+			txt=fs.readFileSync(path,'utf8');
+		}
+		catch(err) {
+			return {};
+		}
+		if (!txt) return {};
+		try {
+			return JSON.parse(txt);
+		}
+		catch(err2) {
+			console.error('Error parsing json file: '+path,err2);
+			return {};
+		}
+	}
+	
+	function write_json_file(path,obj) {
+		try {
+			fs.writeFileSync(path,JSON.stringify(obj));
+			return true;
+		}
+		catch(err) {
+			console.error(err);
+			return false;
+		}
+	}
+	function get_hashed_password(password,salt) {
+		return md5Sync(salt+password);
+	}
+	function md5Sync(str) {
+		var md5sum=crypto.createHash('md5');
+		md5sum.update(str);
+		return md5sum.digest('hex');
+	}
+	function is_admin_user(user0) {
+		if (user0=='admin') return true;
+		if (user0=='magland') return true;
+		return false;
 	}
 }
 
