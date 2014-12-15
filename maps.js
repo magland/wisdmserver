@@ -683,12 +683,16 @@ function do_merge_map_databases(DB_src,DB_dst,callback) {
 			}
 			docs_dst_by_id={};
 			docs_dst.forEach(function(doc) {
-				docs_dst_by_id[doc._id.toHexString()]=doc;
+				if (doc._id) { //added 12/15/2014
+					docs_dst_by_id[doc._id.toHexString()]=doc;
+				}
 			});
 			var ids_missing_in_dst=[];
 			all_docs_nonredundant.forEach(function(doc) {
-				if (!(doc._id.toHexString() in docs_dst_by_id)) {
-					ids_missing_in_dst.push(doc._id.toHexString());
+				if (doc._id) { //added 12/15/2014
+					if (!(doc._id.toHexString() in docs_dst_by_id)) {
+						ids_missing_in_dst.push(doc._id.toHexString());
+					}
 				}
 			});
 			set_status('inserting docs');
